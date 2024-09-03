@@ -5,7 +5,7 @@ const didYouMean = require('didyoumean');
 const dictionary = Array.from(getWordsFromFile());
 
 function getWordsFromFile() {
-    // Get the active text editor
+    // Get the active text file editor gegetWordsFromFile()
     const editor = vscode.window.activeTextEditor;
 
     if (!editor) {
@@ -58,6 +58,33 @@ function getWord() {
 }
 
 
+function replaceWord(newWord) {
+    // Get the active text editor
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) return; // No active editor, exit the function
+
+    // Get the current cursor position
+    const { line, character } = editor.selection.active;
+
+    // Get the text of the current line up to the cursor position and trim any trailing whitespace
+    const lineText = editor.document.lineAt(line).text.substring(0, character).trimEnd();
+
+    // Use a regular expression to find the last word before any trailing non-word characters
+    const match = lineText.match(/[\w]+(?=\W*$)/);
+
+    // If a word is found, replace it
+		if (match) {
+        const wordStart = character - match[0].length - 1;
+        const wordRange = new vscode.Range(new vscode.Position(line, wordStart), new vscode.Position(line, character));
+
+        editor.edit(editBuilder => {
+            editBuilder.replace(wordRange, newWord);
+        });
+    } else {
+        vscode.window.showInformationMessage('No word found to replace.');
+    }
+}
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 
@@ -74,6 +101,7 @@ function activate(context) {
         } else {
             vscode.window.showInformationMessage('N/A');
         }
+				replaceWord(correctedWord)
     });
 
     context.subscriptions.push(disposable);
